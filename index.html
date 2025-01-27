@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Do It - Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Just Do It</h1>
+        </header>
+        
+        <main>
+            <div class="task-section">
+                <div class="task-form">
+                    <h2>Add New Task</h2>
+                    <form id="taskForm">
+                        <input type="text" id="taskTitle" placeholder="Task Title" required>
+                        <textarea id="taskDescription" placeholder="Task Description (optional)"></textarea>
+                        <input type="datetime-local" id="taskDeadline" required>
+                        <button type="submit">Add Task</button>
+                    </form>
+                </div>
+
+                <div class="task-lists">
+                    <div class="today-tasks">
+                        <h2>Today's Tasks</h2>
+                        <div id="todayTasksList" class="tasks-container"></div>
+                    </div>
+                    
+                    <div class="selected-day-tasks">
+                        <h2>Selected Day Tasks</h2>
+                        <div id="selectedDayTasksList" class="tasks-container"></div>
+                    </div>
+
+                    <div class="backlog-tasks">
+                        <h2>Backlog (Postponed Tasks)</h2>
+                        <div id="backlogTasksList" class="tasks-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="calendar-section">
+                <div class="calendar">
+                    <div class="calendar-header">
+                        <h2 id="currentMonth">
+                            <span id="prevMonth" class="nav-arrow">&lt;</span>
+                            <span id="monthDisplay">JANUARY 2025</span>
+                            <span id="nextMonth" class="nav-arrow">&gt;</span>
+                        </h2>
+                    </div>
+                    <table class="calendar-grid">
+                        <thead>
+                            <tr>
+                                <th class="weekday">SUN</th>
+                                <th class="weekday">MON</th>
+                                <th class="weekday">TUE</th>
+                                <th class="weekday">WED</th>
+                                <th class="weekday">THU</th>
+                                <th class="weekday">FRI</th>
+                                <th class="weekday">SAT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calendarDays"></tbody>
+                    </table>
+                </div>
+            </aside>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

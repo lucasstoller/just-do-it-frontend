@@ -1,23 +1,104 @@
-// Task Management
-class Task {
-    constructor(title, description, deadline) {
-        this.id = Date.now().toString();
-        this.title = title;
-        this.description = description;
-        this.deadline = deadline;
-        this.completed = false;
+class ApiClient {
+    constructor() {
+        this.baseUrl = 'http://localhost:8080/v1';
+    }
+
+    async request(endpoint, options = {}) {
+        const token = localStorage.getItem(TOKEN_KEY);
+        if (!token) {
+            window.location.href = 'login.html';
+            throw new Error('Authentication token is required');
+        }
+
+        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+            ...options,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            }
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            if (response.status === 401) {
+                removeToken();
+                window.location.href = 'login.html';
+            }
+            throw new Error(error.message || 'An error occurred');
+        }
+
+        return response.status === 204 ? null : response.json();
+    }
+
+    async getTasks() {
+        return this.request('/tasks');
+    }
+
+    async getTasksByDate(date) {
+        return this.request(`/tasks?deadline=${date}`);
+    }
+
+    async getTodayTasks() {
+        return this.request('/tasks/today');
+    }
+
+    async getBacklogTasks() {
+        return this.request('/tasks/backlog');
+    }
+
+    async createTask(task) {
+        return this.request('/tasks', {
+            method: 'POST',
+            body: JSON.stringify(task)
+        });
+    }
+
+    async updateTask(taskId, task) {
+        return this.request(`/tasks/${taskId}`, {
+            method: 'PUT',
+            body: JSON.stringify(task)
+        });
+    }
+
+    async deleteTask(taskId) {
+        return this.request(`/tasks/${taskId}`, {
+            method: 'DELETE'
+        });
+    }
+
+    async toggleTaskComplete(taskId) {
+        return this.request(`/tasks/${taskId}/toggle`, {
+            method: 'PATCH'
+        });
     }
 }
 
 class TaskManager {
     constructor() {
-        this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        this.api = new ApiClient();
+        this.tasks = [];
         this.selectedDate = null;
         this.currentEditingTask = null;
         this.initializeEventListeners();
         this.setDefaultDeadline();
         this.renderCalendar();
-        this.updateAllTaskLists();
+        this.loadTasks();
+    }
+
+    async loadTasks() {
+        try {
+            const response = await this.api.getTasks();
+            this.tasks = response.tasks;
+            this.updateAllTaskLists();
+        } catch (error) {
+            console.error('Failed to load tasks:', error);
+            this.showError('Failed to load tasks. Please check your authentication token.');
+        }
+    }
+
+    showError(message) {
+        alert(message);
     }
 
     setDefaultDeadline() {
@@ -33,16 +114,17 @@ class TaskManager {
     }
 
     initializeEventListeners() {
+
         // Task form submission
-        document.getElementById('taskForm').addEventListener('submit', (e) => {
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.addTask();
+            await this.addTask();
         });
 
         // Edit form submission
-        document.getElementById('editTaskForm').addEventListener('submit', (e) => {
+        document.getElementById('editTaskForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            this.updateTask();
+            await this.updateTask();
         });
 
         // Cancel edit button
@@ -57,41 +139,63 @@ class TaskManager {
         document.getElementById('nextMonth').addEventListener('click', () => {
             this.navigateMonth(1);
         });
+
+        // Initialize logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            removeToken();
+            window.location.href = 'login.html';
+        });
     }
 
-    addTask() {
-        const title = document.getElementById('taskTitle').value;
-        const description = document.getElementById('taskDescription').value;
-        const deadline = document.getElementById('taskDeadline').value;
+    async addTask() {
+        try {
+            const title = document.getElementById('taskTitle').value;
+            const description = document.getElementById('taskDescription').value;
+            const localDeadline = document.getElementById('taskDeadline').value;
+            const deadline = new Date(localDeadline).toISOString();
 
-        const task = new Task(title, description, deadline);
-        this.tasks.push(task);
-        this.saveTasks();
-        this.updateAllTaskLists();
-        this.renderCalendar();
+            const newTask = await this.api.createTask({
+                title,
+                description,
+                deadline
+            });
 
-        // Reset form and set new default deadline
-        document.getElementById('taskForm').reset();
-        this.setDefaultDeadline();
-    }
-
-    saveTasks() {
-        localStorage.setItem('tasks', JSON.stringify(this.tasks));
-    }
-
-    deleteTask(taskId) {
-        this.tasks = this.tasks.filter(task => task.id !== taskId);
-        this.saveTasks();
-        this.updateAllTaskLists();
-        this.renderCalendar();
-    }
-
-    toggleTaskComplete(taskId) {
-        const task = this.tasks.find(t => t.id === taskId);
-        if (task) {
-            task.completed = !task.completed;
-            this.saveTasks();
+            this.tasks.push(newTask);
             this.updateAllTaskLists();
+            this.renderCalendar();
+
+            // Reset form and set new default deadline
+            document.getElementById('taskForm').reset();
+            this.setDefaultDeadline();
+        } catch (error) {
+            console.error('Failed to add task:', error);
+            this.showError('Failed to add task. Please try again.');
+        }
+    }
+
+    async deleteTask(taskId) {
+        try {
+            await this.api.deleteTask(taskId);
+            this.tasks = this.tasks.filter(task => task.id !== taskId);
+            this.updateAllTaskLists();
+            this.renderCalendar();
+        } catch (error) {
+            console.error('Failed to delete task:', error);
+            this.showError('Failed to delete task. Please try again.');
+        }
+    }
+
+    async toggleTaskComplete(taskId) {
+        try {
+            const response = await this.api.toggleTaskComplete(taskId);
+            const task = this.tasks.find(t => t.id === taskId);
+            if (task) {
+                task.completed = response.completed;
+                this.updateAllTaskLists();
+            }
+        } catch (error) {
+            console.error('Failed to toggle task completion:', error);
+            this.showError('Failed to update task status. Please try again.');
         }
     }
 
@@ -203,10 +307,12 @@ class TaskManager {
     }
 
     // Task Display Functions
-    updateAllTaskLists() {
-        this.updateTodayTasks();
-        this.updateSelectedDayTasks();
-        this.updateBacklogTasks();
+    async updateAllTaskLists() {
+        await Promise.all([
+            this.updateTodayTasks(),
+            this.updateSelectedDayTasks(),
+            this.updateBacklogTasks()
+        ]);
     }
 
     showUpdateForm() {
@@ -228,22 +334,43 @@ class TaskManager {
             // Fill the edit form with task data
             document.getElementById('editTaskTitle').value = task.title;
             document.getElementById('editTaskDescription').value = task.description || '';
-            document.getElementById('editTaskDeadline').value = task.deadline;
+            // Convert UTC ISO string to local datetime-local format
+            const deadline = new Date(task.deadline);
+            const year = deadline.getFullYear();
+            const month = String(deadline.getMonth() + 1).padStart(2, '0');
+            const day = String(deadline.getDate()).padStart(2, '0');
+            const hours = String(deadline.getHours()).padStart(2, '0');
+            const minutes = String(deadline.getMinutes()).padStart(2, '0');
+            
+            document.getElementById('editTaskDeadline').value = `${year}-${month}-${day}T${hours}:${minutes}`;
             this.showUpdateForm();
         }
     }
 
-    updateTask() {
+    async updateTask() {
         if (this.currentEditingTask) {
-            // Update the existing task object
-            this.currentEditingTask.title = document.getElementById('editTaskTitle').value;
-            this.currentEditingTask.description = document.getElementById('editTaskDescription').value;
-            this.currentEditingTask.deadline = document.getElementById('editTaskDeadline').value;
-            
-            this.saveTasks();
-            this.updateAllTaskLists();
-            this.renderCalendar();
-            this.hideUpdateForm();
+            try {
+                const updatedTask = {
+                    title: document.getElementById('editTaskTitle').value,
+                    description: document.getElementById('editTaskDescription').value,
+                    deadline: new Date(document.getElementById('editTaskDeadline').value).toISOString()
+                };
+
+                const response = await this.api.updateTask(this.currentEditingTask.id, updatedTask);
+                
+                // Update the task in the local array
+                const index = this.tasks.findIndex(t => t.id === this.currentEditingTask.id);
+                if (index !== -1) {
+                    this.tasks[index] = response;
+                }
+
+                this.updateAllTaskLists();
+                this.renderCalendar();
+                this.hideUpdateForm();
+            } catch (error) {
+                console.error('Failed to update task:', error);
+                this.showError('Failed to update task. Please try again.');
+            }
         }
     }
 
@@ -252,7 +379,6 @@ class TaskManager {
         taskElement.className = 'task-item';
         const deadlineDate = new Date(task.deadline);
         
-        // Only mark tasks as overdue in the backlog section
         if (context === 'backlog' && !task.completed && deadlineDate < new Date()) {
             taskElement.classList.add('overdue');
         }
@@ -300,50 +426,49 @@ class TaskManager {
         return taskElement;
     }
 
-    updateTodayTasks() {
-        const todayList = document.getElementById('todayTasksList');
-        todayList.innerHTML = '';
-        
-        const today = new Date();
-        const todayTasks = this.tasks.filter(task => {
-            const taskDate = new Date(task.deadline);
-            return taskDate.toDateString() === today.toDateString();
-        });
-
-        todayTasks.forEach(task => {
-            todayList.appendChild(this.createTaskElement(task));
-        });
-    }
-
-    updateSelectedDayTasks() {
-        const selectedList = document.getElementById('selectedDayTasksList');
-        selectedList.innerHTML = '';
-
-        if (this.selectedDate) {
-            const selectedTasks = this.tasks.filter(task => {
-                const taskDate = new Date(task.deadline);
-                return taskDate.toDateString() === this.selectedDate.toDateString();
+    async updateTodayTasks() {
+        try {
+            const todayList = document.getElementById('todayTasksList');
+            todayList.innerHTML = '';
+            
+            const response = await this.api.getTodayTasks();
+            response.tasks.forEach(task => {
+                todayList.appendChild(this.createTaskElement(task));
             });
-
-            selectedTasks.forEach(task => {
-                selectedList.appendChild(this.createTaskElement(task));
-            });
+        } catch (error) {
+            console.error('Failed to load today\'s tasks:', error);
         }
     }
 
-    updateBacklogTasks() {
-        const backlogList = document.getElementById('backlogTasksList');
-        backlogList.innerHTML = '';
+    async updateSelectedDayTasks() {
+        if (this.selectedDate) {
+            try {
+                const selectedList = document.getElementById('selectedDayTasksList');
+                selectedList.innerHTML = '';
 
-        const now = new Date();
-        const backlogTasks = this.tasks.filter(task => {
-            const taskDate = new Date(task.deadline);
-            return !task.completed && taskDate < now;
-        });
+                const date = this.selectedDate.toISOString().split('T')[0];
+                const response = await this.api.getTasksByDate(date);
+                response.tasks.forEach(task => {
+                    selectedList.appendChild(this.createTaskElement(task));
+                });
+            } catch (error) {
+                console.error('Failed to load selected day tasks:', error);
+            }
+        }
+    }
 
-        backlogTasks.forEach(task => {
-            backlogList.appendChild(this.createTaskElement(task, 'backlog'));
-        });
+    async updateBacklogTasks() {
+        try {
+            const backlogList = document.getElementById('backlogTasksList');
+            backlogList.innerHTML = '';
+
+            const response = await this.api.getBacklogTasks();
+            response.tasks.forEach(task => {
+                backlogList.appendChild(this.createTaskElement(task, 'backlog'));
+            });
+        } catch (error) {
+            console.error('Failed to load backlog tasks:', error);
+        }
     }
 }
 

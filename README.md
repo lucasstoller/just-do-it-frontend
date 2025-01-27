@@ -1,6 +1,6 @@
 # Just Do It - Task Manager
 
-![Just Do It Logo](just-do-it.png)
+![Just Do It Logo](logo.jpeg)
 
 A clean and intuitive task management application built with vanilla JavaScript, HTML, and CSS. This app helps you organize your tasks with a calendar-based interface and smart task categorization.
 

@@ -32,6 +32,43 @@ header {
     margin-bottom: 2rem;
 }
 
+.auth-section {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.auth-section input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 300px;
+}
+
+.auth-section button {
+    padding: 0.5rem 1rem;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.logout-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
 header h1 {
     color: var(--primary-color);
     font-size: 2.5rem;
@@ -346,6 +383,119 @@ button:hover {
     color: var(--secondary-color);
 }
 
+/* Authentication Pages */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    max-width: 900px;
+    width: 100%;
+    overflow: hidden;
+}
+
+.auth-form {
+    flex: 1;
+    padding: 2.5rem;
+}
+
+.auth-form h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.password-input {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 1rem;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+}
+
+.form-links {
+    text-align: right;
+    margin: 1rem 0;
+}
+
+.forgot-password {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.auth-footer a {
+    color: var(--secondary-color);
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-illustration {
+    flex: 1;
+    background-color: #f8f9fa;
+    padding: 2.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.auth-illustration img {
+    max-width: 80%;
+    height: auto;
+    margin-bottom: 2rem;
+}
+
+.auth-illustration h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.auth-illustration p {
+    color: #666;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     main {
@@ -367,6 +517,38 @@ button:hover {
     input, textarea, button {
         padding: 0.6rem;
     }
+
+    /* Auth pages responsive styles */
+    .auth-card {
+        flex-direction: column;
+        max-width: 100%;
+        margin: 1rem;
+    }
+
+    .auth-form {
+        padding: 1.5rem;
+    }
+
+    .auth-illustration {
+        padding: 1.5rem;
+    }
+
+    .auth-illustration img {
+        max-width: 60%;
+    }
+
+    .auth-form h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .auth-button {
+        padding: 0.8rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -381,5 +563,44 @@ button:hover {
     .weekday, .calendar-day {
         padding: 0.25rem;
         font-size: 0.9rem;
+    }
+
+    /* Auth pages mobile styles */
+    .auth-container {
+        padding: 1rem;
+    }
+
+    .auth-card {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    .auth-form {
+        padding: 1rem;
+    }
+
+    .auth-illustration {
+        padding: 1rem;
+    }
+
+    .auth-illustration img {
+        max-width: 80%;
+    }
+
+    .auth-illustration h3 {
+        font-size: 1.2rem;
+    }
+
+    .auth-illustration p {
+        font-size: 0.9rem;
+    }
+
+    .form-links {
+        margin: 0.5rem 0;
+    }
+
+    .auth-footer {
+        margin-top: 1.5rem;
     }
 }

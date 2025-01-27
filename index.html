@@ -15,13 +15,26 @@
         
         <main>
             <div class="task-section">
-                <div class="task-form">
+                <div class="task-form" id="addTaskForm">
                     <h2>Add New Task</h2>
                     <form id="taskForm">
                         <input type="text" id="taskTitle" placeholder="Task Title" required>
                         <textarea id="taskDescription" placeholder="Task Description (optional)"></textarea>
                         <input type="datetime-local" id="taskDeadline" required>
                         <button type="submit">Add Task</button>
+                    </form>
+                </div>
+
+                <div class="task-form" id="updateTaskForm" style="display: none;">
+                    <h2>Update Task</h2>
+                    <form id="editTaskForm">
+                        <input type="text" id="editTaskTitle" placeholder="Task Title" required>
+                        <textarea id="editTaskDescription" placeholder="Task Description (optional)"></textarea>
+                        <input type="datetime-local" id="editTaskDeadline" required>
+                        <div class="form-buttons">
+                            <button type="submit">Update Task</button>
+                            <button type="button" id="cancelEdit">Cancel</button>
+                        </div>
                     </form>
                 </div>
 

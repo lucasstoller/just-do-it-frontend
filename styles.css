@@ -89,6 +89,19 @@ button:hover {
     background-color: #2980b9;
 }
 
+.form-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-buttons button[type="button"] {
+    background-color: #95a5a6;
+}
+
+.form-buttons button[type="button"]:hover {
+    background-color: #7f8c8d;
+}
+
 .task-lists > div {
     background: white;
     padding: 1.5rem;
@@ -195,7 +208,7 @@ button:hover {
     gap: 1rem;
 }
 
-.delete-btn {
+.task-btn {
     background: none;
     border: none;
     padding: 0.5rem;
@@ -204,8 +217,21 @@ button:hover {
     transition: color 0.2s;
 }
 
+.edit-btn:hover {
+    color: var(--success-color);
+}
+
 .delete-btn:hover {
     color: var(--danger-color);
+}
+
+.edit-btn, .delete-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    color: #888;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
 .task-checkbox input[type="checkbox"] {

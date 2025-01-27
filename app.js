@@ -13,6 +13,7 @@ class TaskManager {
     constructor() {
         this.tasks = JSON.parse(localStorage.getItem('tasks')) || [];
         this.selectedDate = null;
+        this.currentEditingTask = null;
         this.initializeEventListeners();
         this.setDefaultDeadline();
         this.renderCalendar();
@@ -36,6 +37,17 @@ class TaskManager {
         document.getElementById('taskForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addTask();
+        });
+
+        // Edit form submission
+        document.getElementById('editTaskForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.updateTask();
+        });
+
+        // Cancel edit button
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            this.hideUpdateForm();
         });
 
         // Calendar navigation
@@ -197,6 +209,44 @@ class TaskManager {
         this.updateBacklogTasks();
     }
 
+    showUpdateForm() {
+        document.getElementById('addTaskForm').style.display = 'none';
+        document.getElementById('updateTaskForm').style.display = 'block';
+    }
+
+    hideUpdateForm() {
+        document.getElementById('addTaskForm').style.display = 'block';
+        document.getElementById('updateTaskForm').style.display = 'none';
+        this.currentEditingTask = null;
+        document.getElementById('editTaskForm').reset();
+    }
+
+    editTask(taskId) {
+        const task = this.tasks.find(t => t.id === taskId);
+        if (task) {
+            this.currentEditingTask = task;
+            // Fill the edit form with task data
+            document.getElementById('editTaskTitle').value = task.title;
+            document.getElementById('editTaskDescription').value = task.description || '';
+            document.getElementById('editTaskDeadline').value = task.deadline;
+            this.showUpdateForm();
+        }
+    }
+
+    updateTask() {
+        if (this.currentEditingTask) {
+            // Update the existing task object
+            this.currentEditingTask.title = document.getElementById('editTaskTitle').value;
+            this.currentEditingTask.description = document.getElementById('editTaskDescription').value;
+            this.currentEditingTask.deadline = document.getElementById('editTaskDeadline').value;
+            
+            this.saveTasks();
+            this.updateAllTaskLists();
+            this.renderCalendar();
+            this.hideUpdateForm();
+        }
+    }
+
     createTaskElement(task, context = 'default') {
         const taskElement = document.createElement('div');
         taskElement.className = 'task-item';
@@ -220,6 +270,9 @@ class TaskManager {
                 </div>
             </div>
             <div class="task-actions">
+                <button class="edit-btn">
+                    <i class="fas fa-pen"></i>
+                </button>
                 <button class="delete-btn">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -231,6 +284,11 @@ class TaskManager {
         checkbox.addEventListener('change', () => {
             this.toggleTaskComplete(task.id);
             taskElement.classList.toggle('completed', task.completed);
+        });
+
+        const editBtn = taskElement.querySelector('.edit-btn');
+        editBtn.addEventListener('click', () => {
+            this.editTask(task.id);
         });
 
         const deleteBtn = taskElement.querySelector('.delete-btn');
